@@ -39,8 +39,10 @@ export async function GET(request: NextRequest) {
     }
 
     const tags = await response.json();
+    console.log('[UPDATE-CHECK] Tags from GitHub:', tags.map((t: any) => t.name));
     
     if (!tags || tags.length === 0) {
+      console.warn('[UPDATE-CHECK] No tags found in repository.');
       return NextResponse.json({
         available: false,
         currentVersion: CURRENT_VERSION,
@@ -50,12 +52,14 @@ export async function GET(request: NextRequest) {
     }
 
     // Assume the first tag is the latest
-    // Remove 'v' prefix if present for comparison
+    // Remove 'v' prefix (case-insensitive) if present for comparison
     const latestTagName = tags[0].name;
-    const latestVersion = latestTagName.replace(/^v/, ''); 
+    const latestVersion = latestTagName.replace(/^v/i, ''); 
     
     // Simple direct comparison
     const isNewer = latestVersion !== CURRENT_VERSION;
+
+    console.log(`[UPDATE-CHECK] latestVersion: ${latestVersion}, CURRENT_VERSION: ${CURRENT_VERSION}, isNewer: ${isNewer}`);
 
     return NextResponse.json({
       available: isNewer,
