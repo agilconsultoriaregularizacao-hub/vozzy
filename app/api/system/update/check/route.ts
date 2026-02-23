@@ -5,14 +5,15 @@ export const dynamic = 'force-dynamic';
 
 export async function GET(request: NextRequest) {
   try {
-    const owner = process.env.GITHUB_OWNER;
-    const repo = process.env.GITHUB_REPO;
+    // Use environment variables or defaults
+    const owner = process.env.GITHUB_OWNER || 'VozzyUp';
+    const repo = process.env.GITHUB_REPO || 'vozzysmart_template';
     const token = process.env.GITHUB_TOKEN;
 
-    if (!owner || !repo || !token) {
-      console.error('[UPDATE-CHECK] Missing GitHub configuration');
+    if (!token) {
+      console.error('[UPDATE-CHECK] Missing GITHUB_TOKEN');
       return NextResponse.json({ 
-        error: 'Configuração do GitHub (Token/Owner/Repo) ausente nas variáveis de ambiente.',
+        error: 'Variável GITHUB_TOKEN ausente no Vercel.',
         configured: false 
       }, { status: 500 });
     }
