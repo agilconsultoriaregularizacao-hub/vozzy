@@ -389,8 +389,8 @@ export async function ensureAccessToken(): Promise<GoogleCalendarTokens> {
   return merged
 }
 
-async function googleCalendarFetch(path: string, init?: RequestInit): Promise<any> {
-  const token = await ensureAccessToken()
+async function googleCalendarFetch(path: string, init?: RequestInit, explicitToken?: GoogleCalendarTokens): Promise<any> {
+  const token = explicitToken ?? await ensureAccessToken()
   const response = await fetch(`${GOOGLE_API_BASE}${path}`, {
     ...init,
     headers: {
@@ -408,8 +408,8 @@ async function googleCalendarFetch(path: string, init?: RequestInit): Promise<an
   return json
 }
 
-export async function listCalendars(): Promise<any[]> {
-  const data = await googleCalendarFetch('/users/me/calendarList')
+export async function listCalendars(explicitToken?: GoogleCalendarTokens): Promise<any[]> {
+  const data = await googleCalendarFetch('/users/me/calendarList', undefined, explicitToken)
   return Array.isArray(data?.items) ? data.items : []
 }
 
@@ -451,12 +451,12 @@ export async function createEvent(params: {
   })
 }
 
-export async function stopWatchChannel(channel: { id: string; resourceId: string }): Promise<void> {
+export async function stopWatchChannel(channel: { id: string; resourceId: string }, explicitToken?: GoogleCalendarTokens): Promise<void> {
   try {
     await googleCalendarFetch('/channels/stop', {
       method: 'POST',
       body: JSON.stringify({ id: channel.id, resourceId: channel.resourceId }),
-    })
+    }, explicitToken)
   } catch (error) {
     console.warn('[google-calendar] Falha ao parar channel:', error)
   }
@@ -467,6 +467,7 @@ export async function createWatchChannel(params: {
   channelId: string
   channelToken: string
   address: string
+  explicitToken?: GoogleCalendarTokens
 }): Promise<GoogleCalendarChannel> {
   const data = await googleCalendarFetch(`/calendars/${encodeURIComponent(params.calendarId)}/events/watch`, {
     method: 'POST',
@@ -476,7 +477,7 @@ export async function createWatchChannel(params: {
       address: params.address,
       token: params.channelToken,
     }),
-  })
+  }, params.explicitToken)
 
   return {
     id: String(data.id || params.channelId),
@@ -488,8 +489,8 @@ export async function createWatchChannel(params: {
   }
 }
 
-export async function buildDefaultCalendarConfig(accountEmail?: string | null): Promise<GoogleCalendarConfig> {
-  const calendars = await listCalendars()
+export async function buildDefaultCalendarConfig(accountEmail?: string | null, explicitToken?: GoogleCalendarTokens): Promise<GoogleCalendarConfig> {
+  const calendars = await listCalendars(explicitToken)
   const primary = calendars.find((item: any) => item.primary) || calendars[0]
   if (!primary) {
     throw new Error('Nenhum calendario encontrado')
@@ -503,7 +504,7 @@ export async function buildDefaultCalendarConfig(accountEmail?: string | null): 
   }
 }
 
-export async function ensureCalendarChannel(calendarId: string): Promise<GoogleCalendarChannel> {
+export async function ensureCalendarChannel(calendarId: string, explicitToken?: GoogleCalendarTokens): Promise<GoogleCalendarChannel> {
   const existing = await getCalendarChannel()
   const now = Date.now()
   if (existing && existing.calendarId === calendarId) {
@@ -515,7 +516,7 @@ export async function ensureCalendarChannel(calendarId: string): Promise<GoogleC
   }
 
   if (existing?.id && existing.resourceId) {
-    await stopWatchChannel({ id: existing.id, resourceId: existing.resourceId })
+    await stopWatchChannel({ id: existing.id, resourceId: existing.resourceId }, explicitToken)
   }
 
   const channelId = randomToken('gc_channel')
@@ -526,6 +527,7 @@ export async function ensureCalendarChannel(calendarId: string): Promise<GoogleC
     channelId,
     channelToken,
     address,
+    explicitToken,
   })
   await saveCalendarChannel(channel)
   return channel
