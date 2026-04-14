@@ -947,7 +947,7 @@ export function generateBookingDynamicFlowJson(configInput?: Partial<BookingFlow
                   'data-source': '${data.services}',
                 },
                 dateComponent,
-                { type: 'TextCaption', text: '${data.error_message}', visible: '${data.has_error}', __editor_label: 'Mensagem de erro (quando não houver horários)' },
+                { type: 'TextCaption', text: '${data.error_message}' },
                 {
                   type: 'Footer',
                   label: config.start.ctaLabel,
@@ -1042,7 +1042,7 @@ export function generateBookingDynamicFlowJson(configInput?: Partial<BookingFlow
                 { type: 'TextSubheading', text: '${data.subtitle}', __editor_key: 'customer.subtitle' },
                 { type: 'TextInput', name: 'customer_name', label: config.customer.nameLabel, __editor_key: 'customer.nameLabel', required: true, 'input-type': 'text' },
                 { type: 'TextInput', name: 'customer_phone', label: config.customer.phoneLabel, __editor_key: 'customer.phoneLabel', required: false, 'input-type': 'phone' },
-                { type: 'TextArea', name: 'notes', label: config.customer.notesLabel, __editor_key: 'customer.notesLabel', required: false },
+                { type: 'TextInput', name: 'notes', label: config.customer.notesLabel, __editor_key: 'customer.notesLabel', required: false, 'input-type': 'text' },
                 {
                   type: 'Footer',
                   label: config.customer.ctaLabel,
@@ -1089,7 +1089,6 @@ export function generateBookingDynamicFlowJson(configInput?: Partial<BookingFlow
                 payload: {
                   event_id: '${data.event_id}',
                   status: 'confirmed',
-                  confirmation_title: '${data.message}',
                 },
               },
             })
