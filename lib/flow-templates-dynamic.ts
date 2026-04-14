@@ -89,8 +89,6 @@ export const DYNAMIC_BOOKING_FLOW_JSON = {
               {
                 type: 'TextCaption',
                 text: '${data.error_message}',
-                visible: '${data.error_message}',
-                __editor_label: 'Mensagem de erro (quando não houver horários)',
               },
               {
                 type: 'Footer',
@@ -205,10 +203,11 @@ export const DYNAMIC_BOOKING_FLOW_JSON = {
                 'input-type': 'phone',
               },
               {
-                type: 'TextArea',
+                type: 'TextInput',
                 name: 'notes',
                 label: 'Observações (opcional)',
                 required: false,
+                'input-type': 'text',
               },
               {
                 type: 'Footer',
@@ -255,7 +254,6 @@ export const DYNAMIC_BOOKING_FLOW_JSON = {
               payload: {
                 event_id: '${data.event_id}',
                 status: 'confirmed',
-                confirmation_title: '${data.message}',
               },
             },
           },
