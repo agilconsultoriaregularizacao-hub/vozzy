@@ -26,14 +26,26 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Estado OAuth invalido' }, { status: 400 })
     }
 
+    // 1. Troca o code pelos tokens de acesso
+    console.log('[google-calendar] callback: trocando code por tokens...')
     const tokens = await exchangeCodeForTokens(code)
+    console.log('[google-calendar] callback: tokens obtidos, salvando...')
     await saveTokens(tokens)
 
+    // 2. Busca e-mail e configura calendário primário
+    console.log('[google-calendar] callback: buscando dados do calendário...')
     const accountEmail = await fetchGoogleAccountEmail(tokens.accessToken)
-    const config = await buildDefaultCalendarConfig(accountEmail)
+    const config = await buildDefaultCalendarConfig(accountEmail, tokens)
     await saveCalendarConfig(config)
+    console.log('[google-calendar] callback: calendário configurado:', config.calendarId)
 
-    await ensureCalendarChannel(config.calendarId)
+    // 3. Configura webhook de notificações (não-fatal: falha aqui não impede a conexão)
+    try {
+      await ensureCalendarChannel(config.calendarId, tokens)
+      console.log('[google-calendar] callback: webhook channel configurado com sucesso')
+    } catch (channelError) {
+      console.warn('[google-calendar] callback: falha ao configurar webhook channel (não-fatal):', channelError)
+    }
 
     // Forçar path local — nunca permitir URLs absolutas (previne open redirect)
     const safePath = returnTo.startsWith('/') ? returnTo : '/settings'
