@@ -30,10 +30,10 @@ export async function GET(request: NextRequest) {
     await saveTokens(tokens)
 
     const accountEmail = await fetchGoogleAccountEmail(tokens.accessToken)
-    const config = await buildDefaultCalendarConfig(accountEmail)
+    const config = await buildDefaultCalendarConfig(accountEmail, tokens)
     await saveCalendarConfig(config)
 
-    await ensureCalendarChannel(config.calendarId)
+    await ensureCalendarChannel(config.calendarId, tokens)
 
     // Forçar path local — nunca permitir URLs absolutas (previne open redirect)
     const safePath = returnTo.startsWith('/') ? returnTo : '/settings'
